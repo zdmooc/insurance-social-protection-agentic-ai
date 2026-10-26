@@ -1,0 +1,19 @@
+services:
+  rules:
+    build: ./java
+    ports: ["127.0.0.1:8090:8090"]
+    healthcheck:
+      test: ["CMD", "java", "-version"]
+      interval: 10s
+  api:
+    build: .
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      RULES_URL: http://rules:8090
+      DB_PATH: /data/assurai.db
+      OLLAMA_URL: http://host.docker.internal:11434
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: ["claim_store:/data"]
+    depends_on: [rules]
+volumes:
+  claim_store: {}

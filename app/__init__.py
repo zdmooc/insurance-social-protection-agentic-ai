@@ -1,0 +1,1 @@
+"""Synthetic insurance benefits demonstrator."""

@@ -1,0 +1,7 @@
+[
+  {"source_id":"CG-ESS-2026-01-A", "plan":"ESSENTIEL", "act":"CONSULTATION", "rate_percent":70, "cap_cents":4000, "text":"Consultation : 70 % de la dépense fictive, dans la limite de 40 EUR."},
+  {"source_id":"CG-ESS-2026-01-B", "plan":"ESSENTIEL", "act":"OPTIQUE", "rate_percent":50, "cap_cents":10000, "text":"Optique : 50 % de la dépense fictive, dans la limite de 100 EUR."},
+  {"source_id":"CG-CONF-2026-01-A", "plan":"CONFORT", "act":"CONSULTATION", "rate_percent":90, "cap_cents":7000, "text":"Consultation : 90 % de la dépense fictive, dans la limite de 70 EUR."},
+  {"source_id":"CG-CONF-2026-01-B", "plan":"CONFORT", "act":"OPTIQUE", "rate_percent":80, "cap_cents":18000, "text":"Optique : 80 % de la dépense fictive, dans la limite de 180 EUR."},
+  {"source_id":"CG-CONF-2026-01-C", "plan":"CONFORT", "act":"DENTAIRE", "rate_percent":65, "cap_cents":25000, "text":"Dentaire : 65 % de la dépense fictive, dans la limite de 250 EUR."}
+]

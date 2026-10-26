@@ -1,0 +1,7 @@
+{
+  "contracts": [
+    {"contract_id": "CTR-100", "beneficiary_id": "BEN-100", "plan": "ESSENTIEL", "start_date": "2026-01-01", "end_date": "2026-12-31"},
+    {"contract_id": "CTR-200", "beneficiary_id": "BEN-200", "plan": "CONFORT", "start_date": "2026-01-01", "end_date": "2026-12-31"},
+    {"contract_id": "CTR-300", "beneficiary_id": "BEN-300", "plan": "ESSENTIEL", "start_date": "2025-01-01", "end_date": "2025-12-31"}
+  ]
+}

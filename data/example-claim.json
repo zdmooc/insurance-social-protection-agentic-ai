@@ -1,0 +1,6 @@
+{
+  "claim_id":"CLM-100", "invoice_ref":"INV-100", "contract_id":"CTR-100", "beneficiary_id":"BEN-100",
+  "care_date":"2026-07-10", "act_code":"CONSULTATION", "amount_cents":6000,
+  "document_text":"invoice_ref=INV-100\namount_cents=6000\nact_code=CONSULTATION\ncare_date=2026-07-10",
+  "extraction_confidence":0.99
+}

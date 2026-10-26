@@ -1,22 +1,45 @@
-# IA agentique — Assurance & protection sociale
+# AssurAI — POC assurance & protection sociale
 
-**Objectif :** concevoir et démontrer une solution IA intégrée au SI d'un assureur ou d'un groupe de protection sociale.
+**POC exécutable :** instruction assistée d'une prestation santé fictive. **Python/FastAPI + moteur de règles Java 21 + SQLite + recherche de clauses contrôlée.** Ollama facultatif pour reformuler une décision ; **le LLM ne calcule rien et ne valide aucun paiement**.
 
-## Commencer ici
+## Démarrer sur portable (WSL2/Docker)
 
-1. [Métier](01-business-architecture/README.md) — santé, prévoyance, retraite, contrats, prestations.
-2. [Cas d'usage](02-agentic-ai-use-cases/README.md) — scénario de remboursement santé et tests.
-3. [Architecture](03-solution-architecture/README.md) — API, agents, règles métier, LLM local ou cloud.
+```bash
+git clone https://github.com/zdmooc/insurance-social-protection-agentic-ai.git
+cd insurance-social-protection-agentic-ai
+docker compose up --build -d
+curl http://localhost:8000/health
+curl -s -X POST http://localhost:8000/v1/claims -H 'Content-Type: application/json' -d @data/example-claim.json
+```
 
-## Premier POC : instruction d'une prestation santé
+**Résultat attendu :** `status=READY_FOR_REVIEW`, `eligible_cents=4000`, citation `CG-ESS-2026-01-A`, `payment_executed=false`.
 
-Facture fictive → extraction → consultation des garanties → RAG documentaire → calcul par moteur de règles → validation → décision tracée.
+Après envoi du dossier :
+```bash
+curl http://localhost:8000/v1/claims/CLM-100/explanation
+curl -s -X POST http://localhost:8000/v1/claims/CLM-100/review -H 'Content-Type: application/json' -d '{"reviewer":"GestionnaireTest","decision":"APPROVE","reason":"Dossier fictif contrôlé"}'
+curl http://localhost:8000/v1/claims/CLM-100
+```
 
-**À construire dans l'ordre :**
-- [x] Modèle métier et architecture cible.
-- [ ] 10 dossiers de test entièrement fictifs + contrats et garanties.
-- [ ] API métier simulées + règles de remboursement déterministes.
-- [ ] RAG + workflow agentique + approbation du gestionnaire.
-- [ ] Tests de bout en bout : exactitude, citations, erreurs, coûts et traçabilité.
+Documentation interactive : http://localhost:8000/docs. Arrêt : `docker compose down` (les dossiers SQLite persistent dans le volume Docker).
 
-Ne pas recopier les plateformes IA déjà présentes dans les autres dépôts. Ce dépôt contient le **métier, les adaptateurs spécifiques et les preuves du POC assurance**. Aucun POC d'assurance n'est encore exécuté.
+## Tests (Python + Java disponibles en local)
+
+```bash
+python -m pip install -r requirements.txt pytest
+PYTHONPATH=. pytest -q  # les tests compilent et démarrent automatiquement Java
+```
+
+## Comprendre en 3 fichiers
+
+- [Métier assurance](01-business-architecture/README.md)
+- [Cas d'usage et scénarios](02-agentic-ai-use-cases/README.md)
+- [Architecture locale et cloud](03-solution-architecture/README.md)
+
+## Fonctionnement
+
+`POST /v1/claims` → validation contrat et bénéficiaire → recherche de garantie avec source → extraction stricte du document texte fictif → calcul **Java** → `READY_FOR_REVIEW` → décision explicite du gestionnaire → lecture du dossier.
+
+Cas d'erreur : document absent, incohérence, faible confiance, contrat expiré, prestation non couverte, doublon et replay idempotent. La consultation optionnelle d'Ollama : `GET /v1/claims/CLM-100/explanation?use_ollama=true` (requiert Ollama local et `qwen2.5:3b`). Sans modèle, la réponse reste fonctionnelle.
+
+**Limites claires :** données entièrement inventées ; extraction de texte structuré (pas d'OCR sur PDF), récupération de clauses filtrée (pas d'index vectoriel), workflow contrôlé (pas d'autonomie multi-agents), revue simulée sans IAM, SQLite mono-instance, aucun SI assureur réel, aucune transaction bancaire, aucun cloud externe. Ce POC n'est pas un système de liquidation ou de paiement de production.
