@@ -1,66 +1,47 @@
-# 03 — Architecture de solutions IA hybride pour assurance et protection sociale
+# Architecture solution — IA locale, cloud ou hybride
 
-Statut : **TARGET DESIGN V0.1**. Architecture indépendante, non attribuée à une entreprise.
-
-## Vue logique
+## Vue d'ensemble
 
 ```text
-Adhérent / gestionnaire / CRM / GED
-                  |
-             API Gateway
-                  |
-          Dossier & Workflow
-                  |
-       IA access / orchestration
-         |             |
-   Extracteur/RAG    Tools approuvés (MCP optionnel)
-         |             |
-    Vector store   APIs Contrat/Garantie/Prestations
-         |             |
-         +------> Rules engine ------> Revue humaine
-                  |
-             Audit / SI gestion simulé
+Adhérent / gestionnaire
+        |
+API Dossiers + workflow
+        |
+        +---- Extraction et RAG ---- GED / clauses / base documentaire
+        |
+        +---- Agent LangGraph ---- Outils autorisés / APIs contrats et garanties
+        |
+        +---- Moteur de règles ---- SI prestations simulé
+        |
+   Validation humaine (si nécessaire)
+        |
+   Décision simulée + audit
 
-               AI Gateway
-                   |
-              Model Router
-           /        |        \
-     Local privé   AWS       Azure
-    Ollama/vLLM   Bedrock    AI models
+IA / RAG / Agents → AI Gateway (LiteLLM) → Modèle local OU service cloud autorisé
 ```
 
-### Répartition des responsabilités
+## Comparaison d'hébergement
 
-| Couche | Rôle | Options réutilisables |
-| --- | --- | --- |
-| Applications métier | Capturer et suivre les dossiers ; état de référence | API mock, workflow métier |
-| Intégration | Accès gouverné aux garanties et aux prestations | API REST/OpenAPI, événements, IBM MQ/Kafka si justifié |
-| Knowledge | Ingestion, versionnage, ACL, citations, suppression | RAG, Qdrant/pgvector selon ADR |
-| IA agentique | Recherche, extraction, planification bornée, synthèse | LangGraph, tool calling, MCP si justifié |
-| Décision | Règles déterministes, contraintes contractuelles, validation | IBM ODM / moteur factice, HITL |
-| Accès modèles | Routage, identité, quotas, coût, observabilité | AI Gateway/LiteLLM + routeur |
-| Inférence | Modèles locaux ou managés selon politique | Ollama, KServe/vLLM, AWS Bedrock, Azure AI |
-| Opérations | Évaluation, traçage, sécurité, GitOps | OpenTelemetry, Prometheus, Grafana, OpenShift |
+| Variante | Modèle | À vérifier |
+|---|---|---|
+| **Locale** | Ollama ; à plus grande échelle OpenShift AI/KServe/vLLM | Ressources CPU/GPU, performance, exploitation |
+| **Cloud** | AWS Bedrock ou Azure AI via API | Région, confidentialité, coût, contrats |
+| **Hybride** | AI Gateway choisissant le fournisseur selon le dossier | Routage par classification, repli autorisé, traçabilité |
 
-## Scénarios d'hébergement à comparer
+**Orientation POC :** commencer en local, comparer le cloud ensuite sur le **même jeu de tests fictifs**. Aucun abonnement cloud n'est requis pour le premier POC.
 
-| Scénario | Où s'exécute le LLM ? | Atouts | Questions de qualification |
-| --- | --- | --- | --- |
-| S1 Privé | Machine locale, datacenter privé, OpenShift AI avec KServe/vLLM | Contrôle des données et de l'inférence | GPU/CPU, VRAM, SLO, MCO, coût complet |
-| S2 Managé | AWS Bedrock / Azure AI / autre API approuvée | Évolutivité et catalogue de modèles | Localisation, traitements, sous-traitance, latence, coût/tokens |
-| S3 Hybride | Router privé + fournisseurs selon classification | Placement par besoin et réversibilité | Politique de routage testée, repli strict et audit |
+## Frontières techniques
 
-Une plateforme **interne** n'implique pas que le modèle est **on-premise**. Un abonnement bureautique type ChatGPT n'est pas équivalent à un service API facturé à l'usage.
+- L'IA propose et explique ; les **règles déterministes** et le **SI métier** font autorité.
+- Les outils ne reçoivent que les autorisations nécessaires ; une opération sensible nécessite un contrôle.
+- Chaque décision conserve : identifiant du dossier, sources, version des garanties, version des règles, modèle et validation.
+- Comparer exactitude, abstention, latence, coût par dossier et taux de revue humaine.
 
-## État des preuves réutilisables
+## Réutilisation (sans copie de code)
 
-- [TradeOps G1 : modèle Ollama réel, single-consumer CRC](https://github.com/zdmooc/TradeOps-GenAI-Integration/blob/main/evidence/d090/20261007-g1-crc-runtime-proof.md) — preuve technique locale, **pas POC assurance**.
-- [TradeOps G2 : identité, quota, budget, télémétrie](https://github.com/zdmooc/TradeOps-GenAI-Integration/blob/main/evidence/d090/20261007-g2-crc-runtime-proof.md) — preuve technique sur le même périmètre.
-- [TradeOps OpenShift AI / KServe / vLLM](https://github.com/zdmooc/TradeOps-GenAI-Integration/blob/main/docs/19-openshift-ai-model-serving.md) — design ; GPU live non prouvé.
-- [Comparaison Build vs Buy / hybride](https://github.com/zdmooc/maya-ai-agentic-architecture-reference/blob/main/enterprise/AGENTIC-PLATFORM-BUILD-VS-BUY-2026.md) — cadrage documenté ; plateformes cloud managées non démontrées en exécution ici.
+- [TradeOps-GenAI-Integration](https://github.com/zdmooc/TradeOps-GenAI-Integration) : LangGraph, RAG, MCP, AI Gateway/LiteLLM, Ollama sur CRC (tests locaux existants).
+- [maya-ai-agentic-architecture-reference](https://github.com/zdmooc/maya-ai-agentic-architecture-reference) : architecture des agents et arbitrages fournisseurs.
+- [enterprise-ai-infrastructure-reference-architecture](https://github.com/zdmooc/enterprise-ai-infrastructure-reference-architecture) : comparatif on-prem/cloud/hybride, notamment pour l'assurance.
+- [mayabank-ibm-odm-ai-decision-architecture](https://github.com/zdmooc/mayabank-ibm-odm-ai-decision-architecture) : séparation moteur de règles / IA.
 
-## NFR à formaliser
-
-Disponibilité, RTO/RPO, p95/p99, confidentialité et minimisation, politique multi-tenant et ACL, capacité, coût par dossier utile, qualité des citations, taux d'erreur et d'abstention, continuité sans LLM, journalisation des décisions, traçabilité des changements.
-
-Aucune valeur cible NFR n'est inventée : faire valider les seuils par le métier et l'exploitant.
+Le fonctionnement du modèle Ollama a été démontré dans TradeOps. **Aucun parcours prestations santé ni déploiement Bedrock/Azure propre à ce dépôt n'est encore démontré.**
