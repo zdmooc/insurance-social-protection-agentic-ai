@@ -1,62 +1,35 @@
-# 02 — Cas d'usage IA générative et agentique
+# Cas d'usage IA
 
-Statut : **BACKLOG / DESIGN**. Aucun POC métier ci-dessous n'est considéré exécuté.
+| Priorité | Cas | Apport IA |
+|---|---|---|
+| 1 | Prestations santé | Lecture facture, RAG garanties, dossier préparé |
+| 2 | Conseiller adhérent | Recherche de garanties et réponses sourcées |
+| 3 | Prévoyance | Extraction de pièces et dossier incomplet |
+| 4 | Retraite | Recherche de périodes et explication des droits |
+| 5 | Assurance collective / DSN | Contrôle et qualification d'anomalies |
+| 6 | Réclamations | Classification et brouillon de réponse |
 
-## Catalogue priorisé
+## POC n° 1 — Prestation santé (à implémenter)
 
-| ID | Use case | Patrons | Priorité |
-| --- | --- | --- | --- |
-| UC-SANTE-01 | Instruction assistée d'une prestation santé | IDP/OCR, RAG, workflow, rules engine, HITL | P1 |
-| UC-RELATION-02 | Assistant conseiller : contrats et garanties | RAG gouverné, citations, API CRM | P1 |
-| UC-PREVOYANCE-03 | Constitution et pré-analyse d'un dossier prévoyance | Extraction, workflow, escalade | P2 |
-| UC-RETRAITE-04 | Recherche des périodes de carrière et explication de droits | RAG, API carrière, validation métier | P2 |
-| UC-COLLECTIF-05 | Assistance au traitement d'anomalies d'affiliation/DSN | Contrôles de cohérence, outils, file de travail | P3 |
-| UC-RECLAM-06 | Préparation de réponses aux réclamations | Classification, RAG, rédaction contrôlée | P3 |
+**Entrée :** facture fictive, contrat fictif, clauses de garantie et barème simulé.
 
-## UC-SANTE-01 — Vertical slice cible
-
-### Chaîne prévue
-
+**Traitement :**
 ```text
-Demande synthétique + facture fictive
-    -> API / dossiers
-    -> Workflow d'instruction (orchestrateur explicite)
-    -> Extraction structurée et validation de schéma
-    -> API contrat + garanties (mock)
-    -> RAG garanties versionnées (avec citations)
-    -> Calcul via règles déterministes (mock / adaptateur)
-    -> Contrôle des écarts et seuils métier
-    -> Approbation humaine si nécessaire
-    -> Enregistrement d'une décision fictive
-    -> Réponse explicative traçable
+Facture → extraction JSON → API contrat/garanties
+        → RAG (clauses citées) → règles de calcul
+        → revue humaine si nécessaire → décision simulée + audit
 ```
 
-### Découpage agentique
+**Sortie :** dossier qualifié, calcul traçable, motifs, sources utilisées, statut de validation. Aucun paiement réel.
 
-Commencer avec **workflow déterministe + un assistant RAG/outils** ; n'introduire un second agent spécialisé (pièces, contrats, analyse d'anomalie) que lorsque les évaluations montrent un bénéfice mesurable. LangGraph est une option de mise en œuvre déjà présente dans le portfolio.
+**Tests obligatoires :**
+1. Dossier nominal et garantie valide.
+2. Facture manquante ou champs illisibles.
+3. Contrat expiré ou bénéficiaire non couvert.
+4. Doublon d'une demande.
+5. Clause introuvable ou contradictoire : abstention/escalade.
+6. Instruction malveillante dans un document : aucun appel d'outil non autorisé.
+7. Montant calculé par le moteur de règles, jamais inventé par le LLM.
+8. Même dossier rejoué : pas de double décision.
 
-### Contrats minimaux envisagés
-
-- `POST /v1/prestations/dossiers` — ouvrir dossier synthétique.
-- `GET /v1/contrats/{contratId}/garanties?date=...` — lire garanties fictives.
-- `POST /v1/documents/extractions` — produire un JSON validé (provenance et score).
-- `POST /v1/prestations/{dossierId}/evaluations` — calcul métier déterministe.
-- `POST /v1/prestations/{dossierId}/revues` — revue humaine simulée.
-- `GET /v1/prestations/{dossierId}/audit` — preuve des décisions et versions.
-
-Ces chemins sont des **propositions d'API**, non des interfaces réelles d'assureurs.
-
-### Tests d'acceptation indispensables
-
-1. La réponse cite les clauses de garanties utilisées ou s'abstient.
-2. Une pièce manquante n'aboutit pas à une décision automatique.
-3. Un contrat expiré ou un bénéficiaire non couvert déclenche un contrôle déterministe.
-4. Le LLM ne peut modifier un calcul ou initier un paiement.
-5. Une instruction cachée dans un document ne déclenche aucune action non autorisée.
-6. Le même dossier rejoué ne crée pas de décision ou paiement en doublon (idempotence).
-7. Journal d'audit = références, versions de modèles/prompts/règles, décision, identité de l'acteur.
-8. Les profils privés/cloud sont testables par le même contrat, sans envoyer de données classifiées vers un fournisseur non autorisé.
-
-## Exigences de preuve
-
-**DESIGNED** = schéma et contrat ; **IMPLEMENTED** = code réel ; **CI_TESTED** = tests reproductibles ; **RUNTIME_PROVEN** = traces d'exécution conservées. La démonstration d'un POC local ne signifie ni certification, ni conformité ni production.
+**Livrables à produire :** corpus synthétique, services/API simulées, tests automatisés, démonstration reproductible.
